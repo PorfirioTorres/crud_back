@@ -24,8 +24,6 @@ import com.porfirio.model.Employee;
 import com.porfirio.service.IEmployeeService;
 import com.porfirio.util.Paginate;
 
-import com.porfirio.util.Constants;
-
 @CrossOrigin(origins = { "*" })
 @RestController
 @RequestMapping(value = "/employees")
@@ -132,17 +130,27 @@ public class EmployeeRestController {
 
 		try {
 			perceptions = employeeService.vacationalPerception(id, hdate);
-
-			if ((Double) perceptions[1] == 0 && (Double) perceptions[2] == 0) {
-				response.put("message", "No existe un usuario con ese id");
-				httpResponse = HttpStatus.NOT_FOUND;
-			} else {
-				response.put("days", perceptions[0]);
-				response.put("bonus", perceptions[1]);
-				response.put("total", perceptions[2]);
+			
+			if (perceptions == null) {
+				// sin derecho a vacaciones
+				response.put("days", 0);
+				response.put("bonus", 0);
+				response.put("total", 0);
 				httpResponse = HttpStatus.OK;
+				rEntity = new ResponseEntity<Map<String, Object>>(response, httpResponse);
+			} else {				
+				if ((Double) perceptions[1] == 0 && (Double) perceptions[2] == 0) {
+					response.put("message", "No existe un usuario con ese id");
+					httpResponse = HttpStatus.NOT_FOUND;
+				} else {
+					response.put("days", perceptions[0]);
+					response.put("bonus", perceptions[1]);
+					response.put("total", perceptions[2]);
+					httpResponse = HttpStatus.OK;
+				}
+				rEntity = new ResponseEntity<Map<String, Object>>(response, httpResponse);
 			}
-			rEntity = new ResponseEntity<Map<String, Object>>(response, httpResponse);
+
 		} catch (HibernateException ex) {
 			response.put("message", ex.getMessage());
 			rEntity = new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -161,9 +169,10 @@ public class EmployeeRestController {
 
 		
 		try {
-			employeeService.manageEmployee(employee, Constants.INSERT);
+			Long id = employeeService.save(employee);
 			
 			response.put("success", "El empleado ha sido agregado con éxito");
+			response.put("id", id);
 			
 			rEntity = new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 		} catch (HibernateException ex) {
@@ -190,7 +199,7 @@ public class EmployeeRestController {
 				response.put("message", "El empleado no existe en la base de datos");
 				httpResponse = HttpStatus.NOT_FOUND;
 			} else {
-				employeeService.manageEmployee(employee, Constants.UPDATE);
+				employeeService.update(employee);
 				response.put("success", "El empleado ha sido actualizado con éxito");
 				httpResponse = HttpStatus.CREATED;
 			}
@@ -237,12 +246,12 @@ public class EmployeeRestController {
 	}
 	
 	@GetMapping("/exists")
-	public ResponseEntity<?> existsEmail(@RequestParam String email) {
+	public ResponseEntity<?> existsEmail(@RequestParam String email, @RequestParam Long id) {
 		ResponseEntity<?> rEntity = null;
 		Map<String, Object> response = new HashMap<>();
 		
 		try {
-			if (employeeService.existsEmail(email)) {
+			if (employeeService.existsEmail(email, id)) {
 				// el email no existe en la BD
 				response.put("message", "email válido");
 			} else {

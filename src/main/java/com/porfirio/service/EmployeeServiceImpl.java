@@ -68,15 +68,20 @@ public class EmployeeServiceImpl implements IEmployeeService {
 				cactual.get(Calendar.DAY_OF_MONTH) < cinicial.get(Calendar.DAY_OF_MONTH))) {
 				dif--;
 			}
-			int totalDays = 0;
-			ResourceBundle rb = ResourceBundle.getBundle("config");
-        	if (dif >= 29) {
-        		totalDays = Integer.parseInt(rb.getString("v" + 29));
-        	} else {
-        		totalDays = Integer.parseInt(rb.getString("v" + dif));
-        	}
 			
-			prestations = employeeDao.vacationalPerception(id, dif, totalDays);
+			if (dif > 0) {				
+				int totalDays = 0;
+				ResourceBundle rb = ResourceBundle.getBundle("config");
+				if (dif >= 29) {
+					totalDays = Integer.parseInt(rb.getString("v" + 29));
+				} else {
+					totalDays = Integer.parseInt(rb.getString("v" + dif));
+				}
+				
+				prestations = employeeDao.vacationalPerception(id, dif, totalDays);
+			} else {
+				prestations = null;
+			}
 		} catch (ParseException e) {
 			throw new RuntimeException("La fecha ingresada no es correcta");
 		}
@@ -85,8 +90,13 @@ public class EmployeeServiceImpl implements IEmployeeService {
 	}
 
 	@Override
-	public void manageEmployee(Employee employee, int operation) throws HibernateException {
-		employeeDao.manageEmployee(employee, operation);
+	public Long save(Employee employee) throws HibernateException {
+		return employeeDao.save(employee);
+	}
+	
+	@Override
+	public void update(Employee employee) throws HibernateException {
+		employeeDao.update(employee);
 	}
 
 	@Override
@@ -96,8 +106,14 @@ public class EmployeeServiceImpl implements IEmployeeService {
 	}
 
 	@Override
-	public Boolean existsEmail(String email) throws HibernateException {
-		return employeeDao.existsEmail(email);
+	public Boolean existsEmail(String email, Long id) throws HibernateException {
+		Employee emp = employeeDao.existsEmail(email);
+		
+		if (emp != null) {
+			return emp.getEmployeeId() == id;
+		}
+		
+		return true;
 	}
 
 }

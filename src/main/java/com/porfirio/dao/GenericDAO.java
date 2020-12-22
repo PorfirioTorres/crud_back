@@ -9,8 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.porfirio.util.HibernateUtil;
 
-import com.porfirio.util.Constants;
-
 @Component
 public class GenericDAO<T> {
 	private Session session;
@@ -20,7 +18,7 @@ public class GenericDAO<T> {
 		session = HibernateUtil.getSessionFactory().openSession();
 		List<T> objs=null;
 		try{
-			objs = session.createQuery("FROM "+entityClass.getSimpleName()).list();
+			objs = session.createQuery("FROM " + entityClass.getSimpleName()).list();
 		}catch(HibernateException he){
 			handleException(he);
 		} finally {
@@ -47,16 +45,35 @@ public class GenericDAO<T> {
 	}
 	
 	@Transactional
-	public void managerEntity(T entity, int operation) {
+	public Serializable save(T entity) {
 		session = HibernateUtil.getSessionFactory().openSession();
 		
 		try {
 			session.beginTransaction();
-			if(operation == Constants.INSERT) { // insert
-				session.persist(entity);
-			} else if (operation == Constants.UPDATE) { // update
-				session.merge(entity);
-			} 
+			
+			Serializable x = session.save(entity);
+			
+			session.getTransaction().commit();
+			return x;
+		} catch(HibernateException e) {
+			session.getTransaction().rollback();
+			handleException(e);
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+		return null;
+	}
+	
+	@Transactional
+	public void update(T entity) {
+		session = HibernateUtil.getSessionFactory().openSession();
+		
+		try {
+			session.beginTransaction();
+			
+			session.merge(entity);
 			
 			session.getTransaction().commit();
 		} catch(HibernateException e) {

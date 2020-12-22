@@ -31,7 +31,7 @@ public class Employee implements Serializable{
 	@Column(name="HIRE_DATE")
 	private Date hireDate;
 	
-	@Column(name="email")
+	@Column(name="email", unique = true)
 	private String email;
 	
 	@ManyToOne
@@ -120,6 +120,15 @@ public class Employee implements Serializable{
 		this.department = department;
 	}
 	
+	@Override
+	public String toString() {
+		return "Employee [employeeId=" + employeeId + ", firstName=" + firstName + ", lastName=" + lastName
+				+ ", hireDate=" + hireDate + ", email=" + email + ", salary=" + salary + ", commissionPCT="
+				+ commissionPCT + "]";
+	}
+
+
+
 	/**
 	 * 
 	 */

@@ -12,7 +12,8 @@ public interface IEmployeeService {
 	public abstract Employee getEmployee(Long id) throws HibernateException;
 	public abstract Paginate<Employee> getPage(int page) throws HibernateException;
 	public abstract Object[] vacationalPerception(Long id, String hdate) throws HibernateException;
-	public abstract void manageEmployee(Employee employee, int operation) throws HibernateException;
+	public abstract Long save(Employee employee) throws HibernateException;
+	public abstract void update(Employee employee) throws HibernateException;
 	public abstract void deleteEmployee(Long id) throws HibernateException;
-	public abstract Boolean existsEmail(String email) throws HibernateException;
+	public abstract Boolean existsEmail(String email, Long id) throws HibernateException;
 }

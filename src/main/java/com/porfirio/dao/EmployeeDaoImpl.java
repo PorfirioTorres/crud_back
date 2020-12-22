@@ -3,6 +3,7 @@ package com.porfirio.dao;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import javax.persistence.NoResultException;
 import javax.persistence.ParameterMode;
 
 import javax.persistence.StoredProcedureQuery;
@@ -130,8 +131,13 @@ public class EmployeeDaoImpl implements IEmployeeDao {
 	}
 
 	@Override
-	public void manageEmployee(Employee employee, int operation) throws HibernateException {
-		genericDAO.managerEntity(employee, operation);
+	public Long save(Employee employee) throws HibernateException {
+		return (Long) genericDAO.save(employee);
+	}
+	
+	@Override
+	public void update(Employee employee) throws HibernateException {
+		genericDAO.update(employee);
 	}
 
 	@Override
@@ -140,17 +146,25 @@ public class EmployeeDaoImpl implements IEmployeeDao {
 	}
 
 	@Override
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	@Transactional
-	public Boolean existsEmail(String email) throws HibernateException {
+	@SuppressWarnings({"rawtypes"})
+	@Transactional(readOnly = true)
+	public Employee existsEmail(String email) throws HibernateException {
+		Employee emp = null;
 		Session session = HibernateUtil.getSessionFactory().openSession();
 		String hql = "FROM Employee e WHERE e.email= :email ";
 		
 		Query query = session.createQuery(hql);
 		query.setParameter("email", email);
-		List<Employee> emp = query.list();
-		
-		return emp.size() == 0;
+		try {			
+			emp = (Employee) query.getSingleResult();
+		} catch (NoResultException e) {
+			emp = null;
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+		return emp;
 	}
 
 }
